@@ -10,6 +10,7 @@ from groq import Groq
 API_KEY = "6779498751:AAEkVBkdKT9Ual6PjYuoDNA2sxCbMYZs2xU"
 GROQ_API_KEY = "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"
 VOLUNTEER_CHAT_ID = -1002163553001  # Replace with the actual chat ID for volunteers
+CHANNEL_USERNAME = "@komaru_updates"
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -176,10 +177,25 @@ def is_spamming(user_id):
     user_requests[user_id].append(now)
     return False
 
+def check_subscription(user_id):
+    try:
+        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        return member.status in ['member', 'administrator', 'creator']
+    except Exception as e:
+        print(f"Error checking subscription: {e}")
+        return False
+
 @bot.message_handler(func=lambda message: message.chat.type == "private")
 def handle_message(message):
     try:
         user_id = message.from_user.id
+
+        if not check_subscription(user_id):
+            markup = types.InlineKeyboardMarkup()
+            subscribe_button = types.InlineKeyboardButton("Подписаться на канал", url=f"https://t.me/{CHANNEL_USERNAME[1:]}")
+            markup.add(subscribe_button)
+            bot.send_message(message.chat.id, "Пожалуйста, подпишитесь на наш канал, чтобы продолжить использование бота.", reply_markup=markup)
+            return
 
         if is_spamming(user_id):
             bot.send_message(message.chat.id, "Вы отправляете сообщения слишком часто. Пожалуйста, подождите немного.")
