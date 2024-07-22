@@ -7,8 +7,8 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 from groq import Groq
 
-API_KEY = "YOUR_API_KEY"
-GROQ_API_KEY = "YOUR_GROQ_API_KEY"
+API_KEY = "6779498751:AAEkVBkdKT9Ual6PjYuoDNA2sxCbMYZs2xU"
+GROQ_API_KEY = "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"
 VOLUNTEER_CHAT_ID = -1002163553001  # Replace with the actual chat ID for volunteers
 
 bot = telebot.TeleBot(API_KEY)
