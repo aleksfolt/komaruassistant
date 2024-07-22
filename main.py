@@ -7,9 +7,8 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 from groq import Groq
 
-
-API_KEY = "6779498751:AAEkVBkdKT9Ual6PjYuoDNA2sxCbMYZs2xU"
-GROQ_API_KEY = "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"
+API_KEY = "YOUR_API_KEY"
+GROQ_API_KEY = "YOUR_GROQ_API_KEY"
 VOLUNTEER_CHAT_ID = -1002163553001  # Replace with the actual chat ID for volunteers
 
 bot = telebot.TeleBot(API_KEY)
@@ -23,6 +22,9 @@ NICK_FILE = "volunteer_nicks.json"
 
 # Dictionary to store message mapping for forwarding replies
 forwarded_messages = {}
+
+# Dictionary to store user request timestamps
+user_requests = {}
 
 # Load banned users from JSON
 try:
@@ -161,10 +163,27 @@ def handle_setnick_command(message):
     except Exception as e:
         print(f"Error handling setnick command: {e}")
 
+def is_spamming(user_id):
+    now = datetime.now()
+    if user_id not in user_requests:
+        user_requests[user_id] = []
+    
+    user_requests[user_id] = [timestamp for timestamp in user_requests[user_id] if now - timestamp < timedelta(seconds=20)]
+
+    if len(user_requests[user_id]) >= 5 or (len(user_requests[user_id]) > 0 and now - user_requests[user_id][-1] < timedelta(seconds=2)):
+        return True
+    
+    user_requests[user_id].append(now)
+    return False
+
 @bot.message_handler(func=lambda message: message.chat.type == "private")
 def handle_message(message):
     try:
         user_id = message.from_user.id
+
+        if is_spamming(user_id):
+            bot.send_message(message.chat.id, "Вы отправляете сообщения слишком часто. Пожалуйста, подождите немного.")
+            return
 
         is_banned, ban_until = check_ban_status(user_id)
         if is_banned:
@@ -224,6 +243,10 @@ def handle_media_message(message):
             return
 
         user_id = message.from_user.id
+
+        if is_spamming(user_id):
+            bot.send_message(message.chat.id, "Вы отправляете сообщения слишком часто. Пожалуйста, подождите немного.")
+            return
 
         is_banned, ban_until = check_ban_status(user_id)
         if is_banned:
