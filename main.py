@@ -73,7 +73,7 @@ def get_completion(messages):
             model="llama3-8b-8192",
             messages=messages,
             temperature=1,
-            max_tokens=1024,
+            max_tokens=700,
             top_p=0.50,
             stream=True,  # Enable streaming
             stop=None,
