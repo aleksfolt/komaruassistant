@@ -84,7 +84,7 @@ def get_completion(messages):
         return response
     except Exception as e:
         print(f"Error getting completion: {e}")
-        return "Произошла ошибка при обработке вашего запроса."
+        return f"Произошла ошибка при обработке вашего запроса. {e}"
 
 @bot.message_handler(commands=['info', 'ban', 'unban', 'setnick'])
 def handle_group_commands(message):
