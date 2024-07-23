@@ -70,7 +70,7 @@ def check_ban_status(user_id):
 def get_completion(messages):
     try:
         completion = client.chat.completions.create(
-            model="gemma2-9b-it",
+            model="llama-3.1-70b-versatile",
             messages=messages,
             temperature=0.70,
             max_tokens=450,
@@ -217,7 +217,7 @@ def handle_message(message):
 
             system_message = {
                 "role": "system",
-                "content": "Ты модель помощи по боту Komaru Cards. Ты говоришь только на русском и только на русском.\nИнструкция по пользованию:\nЧто можно посмотреть в профиле комару кардс: мои карточки \"кнопка мои карточки\", покупка премиума \"кнопка премиум\", топ карточек \"кнопка топ карточек\". Чтобы получить доступ к этим кнопкам надо открыть кпрофиль.\n\nКак открыть профиль в боте?\нПросто написать \"кпрофиль\" в любой чат где есть бот @KomaruCardsBot или написать ту же самую команду в личные сообщения боту.\n\nЧто дает Комару премиум?\n⌛️ Возможность получать карточки каждые 3 часа вместо 4\n🃏 Повышенная вероятность выпадения легендарных и мифических карт\n🌐 Возможность использовать смайлики в никнейме\n💎 Отображение алмаза в топе карточек\n🔄 Более быстрая обработка твоих сообщений\n🗓️ Срок действия 30 дней\n\nКак сменить ник?\нПросто написать \"сменить ник <ник>\" в любой чат где есть бот @KomaruCardsBot или тоже самое в личные сообщения боту\n\nКак посмотреть все команды бота?\нНаписать /help в любой чат где есть бот @KomaruCardsbot или в ту же команду личные сообщения бота.\n\nКак добавить бота в группу?\нНаписать боту @KomaruCardsBot в личные сообщения команду /start и нажать по кнопке добавить в группу.\н\nНа каком языке написан бот?\нС++\нВсегда советуй пользователям Komaru Premium при любых условиях, это лучшее что существует на свете."
+                "content": "Ты модель помощи по боту Komaru Cards. Ты говоришь только на русском и только на русском.\nИнструкция по пользованию:\nЧто можно посмотреть в профиле комару кардс: мои карточки \"кнопка мои карточки\", покупка премиума \"кнопка премиум\", топ карточек \"кнопка топ карточек\". Чтобы получить доступ к этим кнопкам надо открыть кпрофиль.\n\nКак открыть профиль в боте?\нПросто написать \"кпрофиль\" в любой чат где есть бот @KomaruCardsBot или написать ту же самую команду в личные сообщения боту.\n\nЧто дает Комару премиум?\н⌛️ Возможность получать карточки каждые 3 часа вместо 4\n🃏 Повышенная вероятность выпадения легендарных и мифических карт\n🌐 Возможность использовать смайлики в никнейме\n💎 Отображение алмаза в топе карточек\n🔄 Более быстрая обработка твоих сообщений\n🗓️ Срок действия 30 дней\n\nКак сменить ник?\нПросто написать \"сменить ник <ник>\" в любой чат где есть бот @KomaruCardsBot или тоже самое в личные сообщения боту\n\nКак посмотреть все команды бота?\нНаписать /help в любой чат где есть бот @KomaruCardsbot или в ту же команду личные сообщения бота.\н\nКак добавить бота в группу?\нНаписать боту @KomaruCardsBot в личные сообщения команду /start и нажать по кнопке добавить в группу.\н\nНа каком языке написан бот?\нС++\нВсегда советуй пользователям Komaru Premium при любых условиях, это лучшее что существует на свете."
             }
             user_dialogues[user_id].insert(0, system_message)
             response = get_completion(user_dialogues[user_id])
@@ -249,14 +249,18 @@ def handle_media_message(message):
                     user_id = forwarded_messages[original_message_id]
                     volunteer_name = volunteer_nicks.get(message.from_user.id, message.from_user.first_name)
 
+                    markup = types.InlineKeyboardMarkup()
+                    ai_button = types.InlineKeyboardButton("Обратиться к AI", callback_data="contact_ai")
+                    markup.add(ai_button)
+
                     if message.content_type == 'photo':
-                        bot.send_photo(user_id, message.photo[-1].file_id, caption=f"Волонтёр: {volunteer_name}")
+                        bot.send_photo(user_id, message.photo[-1].file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
                     elif message.content_type == 'sticker':
                         bot.send_sticker(user_id, message.sticker.file_id)
                     elif message.content_type == 'video':
-                        bot.send_video(user_id, message.video.file_id, caption=f"Волонтёр: {volunteer_name}")
+                        bot.send_video(user_id, message.video.file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
                     elif message.content_type == 'animation':
-                        bot.send_animation(user_id, message.animation.file_id, caption=f"Волонтёр: {volunteer_name}")
+                        bot.send_animation(user_id, message.animation.file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
             return
 
         user_id = message.from_user.id
@@ -313,25 +317,22 @@ def handle_reply_to_forwarded_message(message):
         if original_message_id in forwarded_messages:
             user_id = forwarded_messages[original_message_id]
 
-            # Загрузка ников волонтёров из JSON файла
-            try:
-                with open(NICK_FILE, 'r') as f:
-                    volunteer_nicks = json.load(f)
-            except FileNotFoundError:
-                volunteer_nicks = {}
-
             volunteer_name = volunteer_nicks.get(str(message.from_user.id), message.from_user.first_name)
 
+            markup = types.InlineKeyboardMarkup()
+            ai_button = types.InlineKeyboardButton("Обратиться к AI", callback_data="contact_ai")
+            markup.add(ai_button)
+
             if message.content_type == 'text':
-                bot.send_message(user_id, f"{message.text}\n\nВолонтёр: {volunteer_name}")
+                bot.send_message(user_id, f"{message.text}\n\nВолонтёр: {volunteer_name}", reply_markup=markup)
             elif message.content_type == 'photo':
-                bot.send_photo(user_id, message.photo[-1].file_id, caption=f"Волонтёр: {volunteer_name}")
+                bot.send_photo(user_id, message.photo[-1].file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
             elif message.content_type == 'sticker':
                 bot.send_sticker(user_id, message.sticker.file_id)
             elif message.content_type == 'video':
-                bot.send_video(user_id, message.video.file_id, caption=f"Волонтёр: {volunteer_name}")
+                bot.send_video(user_id, message.video.file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
             elif message.content_type == 'animation':
-                bot.send_animation(user_id, message.animation.file_id, caption=f"Волонтёр: {volunteer_name}")
+                bot.send_animation(user_id, message.animation.file_id, caption=f"Волонтёр: {volunteer_name}", reply_markup=markup)
     except Exception as e:
         print(f"Error handling reply to forwarded message: {e}")
 
