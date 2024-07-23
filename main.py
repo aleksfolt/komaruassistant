@@ -70,7 +70,7 @@ def check_ban_status(user_id):
 def get_completion(messages):
     try:
         completion = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="gemma2-9b-it",
             messages=messages,
             temperature=0.70,
             max_tokens=450,
